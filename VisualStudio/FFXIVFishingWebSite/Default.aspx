@@ -2,26 +2,26 @@
 
 <asp:Content ID="BodyContent" ContentPlaceHolderID="MainContent" runat="server">
 
-    <div class="jumbotron">
+    <asp:SqlDataSource ID="SqlDataSource1"
+        ConnectionString='<%$ ConnectionStrings:LocalMySqlServer %>'
+        SelectCommand="SELECT * FROM fish"
+        runat="server" ProviderName='<%$ ConnectionStrings:LocalMySqlServer.ProviderName %>'>
+    </asp:SqlDataSource>
+    <asp:ListBox
+        id="ListBox1"
+        runat="server"
+        DataTextField="Fish Name"
+        DataSourceID ="SqlDataSource1">
+    </asp:ListBox>
+
+    <%--<div class="jumbotron">
         <h1>ASP.NET</h1>
         <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS, and JavaScript.</p>
         <p><a href="http://www.asp.net" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
         
-        <asp:SqlDataSource ID="SqlDataSource1"
-            ConnectionString='<%$ ConnectionStrings:LocalMySqlServer %>'
-            SelectCommand="SELECT * FROM fish"
-            runat="server" ProviderName='<%$ ConnectionStrings:LocalMySqlServer.ProviderName %>'>
-        </asp:SqlDataSource>
+    </div>--%>
 
-        <asp:ListBox
-            id="ListBox1"
-            runat="server"
-            DataTextField="Fish Name"
-            DataSourceID ="SqlDataSource1">
-        </asp:ListBox>
-    </div>
-
-    <div class="row">
+    <%--<div class="row">
         <div class="col-md-4">
             <h2>Getting started</h2>
             <p>
@@ -50,5 +50,5 @@
                 <a class="btn btn-default" href="http://go.microsoft.com/fwlink/?LinkId=301950">Learn more &raquo;</a>
             </p>
         </div>
-    </div>
+    </div>--%>
 </asp:Content>
