@@ -1,6 +1,6 @@
 ﻿@{
     Layout = "~/_SiteLayout.cshtml";
-    Page.Title = "Home Page";
+    Page.Title = "FFXIV Fishing Azra";
     var db = Database.Open("LocalMySqlServer");
     var selectFishQuery = "SELECT fishName, fishLevel, fishDescription FROM fish";
 }
@@ -10,7 +10,7 @@
     <div class="content-wrapper">
         <hgroup class="title">
             <h1>@Page.Title.</h1>
-            <h2>Modify this template to jump-start your ASP.NET Web Pages application.</h2>
+            <h2>A simple time tracking fishing website for FFXIV.</h2>
         </hgroup>
         <table>
             <thead>
@@ -31,18 +31,18 @@
                 }
             </tbody>
         </table>
-        <p>
+        @*<p>
             To learn more about ASP.NET Web Pages, visit
             <a href="http://asp.net/webpages" title="ASP.NET Web Pages Website">http://asp.net/webpages</a>.
             The page features <mark>videos, tutorials, and samples</mark> to help you get the most from ASP.NET Web Pages.
             If you have any questions about ASP.NET Web Pages, visit
             <a href="http://forums.iis.net/1166.aspx" title="ASP.NET Web Pages Forum">our forums</a>.
-        </p>
+        </p>*@
     </div>
 </section>
 }
 
-<h3>We suggest the following:</h3>
+@*<h3>We suggest the following:</h3>
 
 <ol class="round">
     <li class="one">
@@ -64,4 +64,4 @@
         You can easily find a web hosting company that offers the right mix of features and price for your applications.
         <a href="http://go.microsoft.com/fwlink/?LinkId=245143">Learn more…</a>
     </li>
-</ol>
+</ol>*@
