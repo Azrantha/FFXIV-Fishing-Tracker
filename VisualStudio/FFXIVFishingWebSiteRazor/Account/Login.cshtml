@@ -34,9 +34,11 @@
         // is this an external login request?
         string provider = Request.Form["provider"];
         if (!provider.IsEmpty()) {
+            //is an external login request
             OAuthWebSecurity.RequestAuthentication(provider, Href("~/Account/RegisterService", new { returnUrl }));
             return;
         } else if (Validation.IsValid()) {
+            //is not an external login request
             email = Request.Form["email"];
             password = Request.Form["password"];
             rememberMe = Request.Form["rememberMe"].AsBool();

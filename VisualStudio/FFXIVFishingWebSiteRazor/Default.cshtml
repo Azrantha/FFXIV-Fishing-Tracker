@@ -2,7 +2,7 @@
     Layout = "~/_SiteLayout.cshtml";
     Page.Title = "FFXIV Fishing Azra";
     var db = Database.Open("LocalMySqlServer");
-    var selectFishQuery = "SELECT fishName, fishLevel, fishDescription FROM fish";
+    var selectFishQuery = "SELECT fishId, fishName, fishLevel, fishDescription, fishPatch FROM fish";
 }
 
 @section featured {
@@ -12,25 +12,91 @@
             <h1>@Page.Title.</h1>
             <h2>A simple time tracking fishing website for FFXIV.</h2>
         </hgroup>
-        <table>
+        <form id="filterSelect">
+            <select id="selectPatch">
+                <option value="none">All Fish</option>
+                <option value="2">A Realm Reborn Fish (2.x)</option>
+                <option value="3">Heavensward Fish (3.x)</option>
+            </select>
+        </form>
+        <table id="fishTable">
             <thead>
                 <tr>
-                    <th>Fish Name</th>
-                    <th>Fish Level</th>
-                    <th>Fish Description</th>
+                    <th>Name</th>
+                    <th>Level</th>
+                    <th>Description</th>
+                    <th>Patch</th>
+                    <th>Caught</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var row in db.Query(selectFishQuery))
                 {
-                    <tr>
-                        <td>@row.fishName</td>
-                        <td>@row.fishLevel</td>
-                        <td>@row.fishDescription</td>
+                    <tr class="fishRow" id="fishRow-@row.fishId" patch="@row.fishPatch">
+                        <td class="fishNameRow">@row.fishName</td>
+                        <td class="fishLevelRow">@row.fishLevel</td>
+                        <td class="fishDescriptionRow">@row.fishDescription</td>
+                        <td class="fishPatchRow">@row.fishPatch</td>
+                        <td><input type="checkbox" name="@row.fishId" value="Caught" /></td>
                     </tr>
                 }
             </tbody>
         </table>
+        <script>
+            $(function () {
+                $("#selectPatch").on("chabnge", function () {
+                    console.log("selectPath changed!");
+                    var choice = this.value;
+                    if (choice == "none") { $("#fishTable").find(".fishRow").show(); return; }
+                    var rows = $("#fishTable").find(".fishRow");
+                    var show = rows.filter(function (index) {
+                        var t = (parseInt(choice) == parseInt($(this).attr("patch")))
+                        return t;
+                    });
+                    show.show();
+                    var hide = rows.filter(function (index) {
+                        var t = (parseInt(choice) != parseInt($(this).attr("patch")))
+                        return t;
+                    });
+                    hide.hide();
+                });
+            });
+
+
+            /* 
+             * Following code copied and adapted from 
+             * https://www.reddit.com/r/ffxiv/comments/33tqok/cloudy_with_a_chance_of_garlok_predicting_eorzean/
+             * until corresponding Copy End comment.
+             */
+            function calculateForecastTarget(lDate) { 
+                // Thanks to Rogueadyn's SaintCoinach library for this calculation.
+                // lDate is the current local time.
+
+                var unixSeconds = parseInt(lDate.getTime() / 1000);
+                // Get Eorzea hour for weather start
+                var bell = unixSeconds / 175;
+
+                // Do the magic 'cause for calculations 16:00 is 0, 00:00 is 8 and 08:00 is 16
+                var increment = (bell + 8 - (bell % 8)) % 24;
+
+                // Take Eorzea days since unix epoch
+                var totalDays = unixSeconds / 4200;
+                totalDays = (totalDays << 32) >>> 0; // Convert to uint
+
+                // 0x64 = 100
+                var calcBase = totalDays * 100 + increment;
+
+                // 0xB = 11
+                var step1 = (calcBase << 11) ^ calcBase;
+                var step2 = (step1 >>> 8) ^ step1;
+
+                // 0x64 = 100
+                return step2 % 100;
+            }
+            /* 
+             * Copy End
+             */
+        </script>
         @*<p>
             To learn more about ASP.NET Web Pages, visit
             <a href="http://asp.net/webpages" title="ASP.NET Web Pages Website">http://asp.net/webpages</a>.
