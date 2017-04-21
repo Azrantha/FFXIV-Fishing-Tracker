@@ -1,66 +1,100 @@
 ﻿@{
     Layout = "~/_SiteLayout.cshtml";
-    Page.Title = "FFXIV Fishing Azra";
+    Page.Title = "FFXIV Fishing Tracker";
+    var userName = WebSecurity.CurrentUserName;
     var db = Database.Open("LocalMySqlServer");
-    var selectFishQuery = "SELECT fishId, fishName, fishLevel, fishDescription, fishPatch FROM fish";
-}
+    var selectFishQuery = "";
+    if (WebSecurity.IsAuthenticated)
+    {
+        selectFishQuery = "SELECT fish.fishId, fish.fishName, fish.fishLevel, fish.fishDescription, fish.fishPatch, user_fish_link.caught FROM fish INNER JOIN user_fish_link ON fish.fishName = user_fish_link.fish WHERE user_fish_link.user = '" + userName + "'";
+    } else
+    {
+        selectFishQuery = "SELECT fish.fishId, fish.fishName, fish.fishLevel, fish.fishDescription, fish.fishPatch, 0 as caught FROM fish";
+    }
 
-@section featured {
+    var saveFishStatement = "";
+    sbyte s = 0;
+    if (IsPost)
+    {
+        saveFishStatement = "INSERT INTO user_fish_link (user, fish, caught) VALUES ";
+        for (int i = 0; i < Request.Form.Count; i++)
+        {
+            if (Request.Form[i] == "Caught,false") { s = 1; } else { s = 0; }
+            saveFishStatement = saveFishStatement + "('" + WebSecurity.CurrentUserName + "','" + Request.Form.AllKeys[i] + "'," + s + ")";
+            if (i != Request.Form.Count - 1) { saveFishStatement = saveFishStatement + ","; }
+        }
+        saveFishStatement = saveFishStatement + "ON DUPLICATE KEY UPDATE user=VALUES(user),fish=VALUES(fish),caught=VALUES(caught)";
+        db.Execute(saveFishStatement);
+        Response.Redirect(Request.Path);
+    }
+    }
+
+
+    @section featured {
 <section class="featured">
     <div class="content-wrapper">
         <hgroup class="title">
             <h1>@Page.Title.</h1>
-            <h2>A simple time tracking fishing website for FFXIV.</h2>
         </hgroup>
-        <form id="filterSelect">
-            <select id="selectPatch">
-                <option value="none">All Fish</option>
-                <option value="2">A Realm Reborn Fish (2.x)</option>
-                <option value="3">Heavensward Fish (3.x)</option>
-            </select>
-        </form>
-        <table id="fishTable">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Level</th>
-                    <th>Description</th>
-                    <th>Patch</th>
-                    <th>Caught</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var row in db.Query(selectFishQuery))
-                {
-                    <tr class="fishRow" id="fishRow-@row.fishId" patch="@row.fishPatch">
-                        <td class="fishNameRow">@row.fishName</td>
-                        <td class="fishLevelRow">@row.fishLevel</td>
-                        <td class="fishDescriptionRow">@row.fishDescription</td>
-                        <td class="fishPatchRow">@row.fishPatch</td>
-                        <td><input type="checkbox" name="@row.fishId" value="Caught" /></td>
+        <select id="selectPatch">
+            <option value="none">All Fish</option>
+            <option value="2">A Realm Reborn Fish (2.x)</option>
+            <option value="3">Heavensward Fish (3.x)</option>
+        </select>
+        <form method="post">
+            <table id="fishTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Level</th>
+                        <th>Description</th>
+                        <th>Patch</th>
+                        <th>Caught</th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach (var row in db.Query(selectFishQuery))
+                    {
+                        <tr class="fishRow" id="fishRow-@row.fishId" patch="@row.fishPatch">
+                            <td class="fishNameRow">@row.fishName</td>
+                            <td class="fishLevelRow">@row.fishLevel</td>
+                            <td class="fishDescriptionRow">@row.fishDescription</td>
+                            <td class="fishPatchRow">@row.fishPatch</td>
+                            @if(@row.caught == 1){
+                            <td><input type="checkbox" name="@row.fishName" value="Caught" checked="checked"/><input type="hidden" name="@row.fishName" value="false"/></td>
+                            } else {
+                            <td><input type="checkbox" name="@row.fishName" value="Caught"/><input type="hidden" name="@row.fishName" value="false" /></td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            @if (WebSecurity.IsAuthenticated)
+            {
+                <button type="submit" value="Submit" class="submit">Save Caught Status</button>
+            }
+        </form>
         <script>
             $(function () {
-                $("#selectPatch").on("chabnge", function () {
-                    console.log("selectPath changed!");
-                    var choice = this.value;
-                    if (choice == "none") { $("#fishTable").find(".fishRow").show(); return; }
-                    var rows = $("#fishTable").find(".fishRow");
-                    var show = rows.filter(function (index) {
-                        var t = (parseInt(choice) == parseInt($(this).attr("patch")))
+                $(document).ready(filter); //On page reload - if option already selected, filter appropriately.
+                $("#selectPatch").on("change", filter); // filter when patch selection box changed.
+
+        function filter() {
+            var choice = $("#selectPatch")[0].value;
+            if (choice == "none") { $("#fishTable").find(".fishRow").show(); return; }
+            var rows = $("#fishTable").find(".fishRow");
+            var show = rows.filter(function (index) {
+                var t = (parseInt(choice) == parseInt($(this).attr("patch")))
                         return t;
-                    });
-                    show.show();
-                    var hide = rows.filter(function (index) {
-                        var t = (parseInt(choice) != parseInt($(this).attr("patch")))
-                        return t;
-                    });
-                    hide.hide();
-                });
             });
+            show.show();
+            var hide = rows.filter(function (index) {
+                var t = (parseInt(choice) != parseInt($(this).attr("patch")))
+                        return t;
+            });
+            hide.hide();
+        }
+    });
 
 
             /* 
@@ -68,31 +102,31 @@
              * https://www.reddit.com/r/ffxiv/comments/33tqok/cloudy_with_a_chance_of_garlok_predicting_eorzean/
              * until corresponding Copy End comment.
              */
-            function calculateForecastTarget(lDate) { 
-                // Thanks to Rogueadyn's SaintCoinach library for this calculation.
-                // lDate is the current local time.
+            function calculateForecastTarget(lDate) {
+        // Thanks to Rogueadyn's SaintCoinach library for this calculation.
+        // lDate is the current local time.
 
-                var unixSeconds = parseInt(lDate.getTime() / 1000);
-                // Get Eorzea hour for weather start
-                var bell = unixSeconds / 175;
+        var unixSeconds = parseInt(lDate.getTime() / 1000);
+        // Get Eorzea hour for weather start
+        var bell = unixSeconds / 175;
 
-                // Do the magic 'cause for calculations 16:00 is 0, 00:00 is 8 and 08:00 is 16
-                var increment = (bell + 8 - (bell % 8)) % 24;
+        // Do the magic 'cause for calculations 16:00 is 0, 00:00 is 8 and 08:00 is 16
+        var increment = (bell + 8 - (bell % 8)) % 24;
 
-                // Take Eorzea days since unix epoch
-                var totalDays = unixSeconds / 4200;
-                totalDays = (totalDays << 32) >>> 0; // Convert to uint
+        // Take Eorzea days since unix epoch
+        var totalDays = unixSeconds / 4200;
+        totalDays = (totalDays << 32) >>> 0; // Convert to uint
 
-                // 0x64 = 100
-                var calcBase = totalDays * 100 + increment;
+        // 0x64 = 100
+        var calcBase = totalDays * 100 + increment;
 
-                // 0xB = 11
-                var step1 = (calcBase << 11) ^ calcBase;
-                var step2 = (step1 >>> 8) ^ step1;
+        // 0xB = 11
+        var step1 = (calcBase << 11) ^ calcBase;
+        var step2 = (step1 >>> 8) ^ step1;
 
-                // 0x64 = 100
-                return step2 % 100;
-            }
+        // 0x64 = 100
+        return step2 % 100;
+    }
             /* 
              * Copy End
              */
