@@ -175,10 +175,23 @@ footer {
         display: inline;
         list-style: none;
     }
+    
+/* hiding
+----------------------------------------------------------*/
+#filtered {
+    display:none;
+}
 
+#hideCaught{
+    display:none
+}
 
 /* menu
 ----------------------------------------------------------*/
+div.horizontal > *{
+    display:inline;
+}
+
 ul#menu {
     font-size: 1.3em;
     font-weight: 600;
@@ -637,6 +650,7 @@ tr.pager td {
         }
 
     /* menu */
+
     nav {
         margin-bottom: 5px;
     }
