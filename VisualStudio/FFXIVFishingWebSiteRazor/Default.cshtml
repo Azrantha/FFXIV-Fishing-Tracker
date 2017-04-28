@@ -25,7 +25,7 @@
         }
         saveFishStatement = saveFishStatement + "ON DUPLICATE KEY UPDATE user=VALUES(user),fish=VALUES(fish),caught=VALUES(caught)";
         db.Execute(saveFishStatement);
-        //Response.Redirect(Request.Path);
+        Response.Redirect(Request.Path);
     }
     }
 
@@ -37,14 +37,11 @@
             <h1>@Page.Title.</h1>
             <h2>A simple progress tracking fishing website for FFXIV.</h2>
         </hgroup>
-        <div class="horizontal">
-            <select id="selectPatch">
-                <option value="none">All Fish</option>
-                <option value="2">A Realm Reborn Fish (2.x)</option>
-                <option value="3">Heavensward Fish (3.x)</option>
-            </select>
-            <label><input type="checkbox" name="hideCaught" id="hideCaughtToggle" value="true" /> Hide caught fish</label>
-        </div>
+        <select id="selectPatch">
+            <option value="none">All Fish</option>
+            <option value="2">A Realm Reborn Fish (2.x)</option>
+            <option value="3">Heavensward Fish (3.x)</option>
+        </select>
         <form method="post">
             <table id="fishTable">
                 <thead>
@@ -80,62 +77,58 @@
         </form>
         <script>
             $(function () {
-                // on filter - set filter property
-                // on hide caught - set hideCaught property? 
-
                 $(document).ready(filter); //On page reload - if option already selected, filter appropriately.
                 $("#selectPatch").on("change", filter); // filter when patch selection box changed.
 
-                function filter() {
-                    var choice = $("#selectPatch")[0].value;
-                    if (choice == "none") { $("#fishTable").find(".fishRow").show(); return; }
-                    var rows = $("#fishTable").find(".fishRow");
-                    var show = rows.filter(function (index) {
-                        var t = (parseInt(choice) == parseInt($(this).attr("patch")));
+        function filter() {
+            var choice = $("#selectPatch")[0].value;
+            if (choice == "none") { $("#fishTable").find(".fishRow").show(); return; }
+            var rows = $("#fishTable").find(".fishRow");
+            var show = rows.filter(function (index) {
+                var t = (parseInt(choice) == parseInt($(this).attr("patch")))
                         return t;
-                    });
-                    show.show();
-                    var hide = rows.filter(function (index) {
-                        var t = (parseInt(choice) != parseInt($(this).attr("patch")));
-                        return t;
-                    });
-                    hide.hide();
-                }
-
             });
+            show.show();
+            var hide = rows.filter(function (index) {
+                var t = (parseInt(choice) != parseInt($(this).attr("patch")))
+                        return t;
+            });
+            hide.hide();
+        }
+    });
 
 
-            /*
-             * Following code copied and adapted from
+            /* 
+             * Following code copied and adapted from 
              * https://www.reddit.com/r/ffxiv/comments/33tqok/cloudy_with_a_chance_of_garlok_predicting_eorzean/
              * until corresponding Copy End comment.
              */
             function calculateForecastTarget(lDate) {
-                // Thanks to Rogueadyn's SaintCoinach library for this calculation.
-                // lDate is the current local time.
+        // Thanks to Rogueadyn's SaintCoinach library for this calculation.
+        // lDate is the current local time.
 
-                var unixSeconds = parseInt(lDate.getTime() / 1000);
-                // Get Eorzea hour for weather start
-                var bell = unixSeconds / 175;
+        var unixSeconds = parseInt(lDate.getTime() / 1000);
+        // Get Eorzea hour for weather start
+        var bell = unixSeconds / 175;
 
-                // Do the magic 'cause for calculations 16:00 is 0, 00:00 is 8 and 08:00 is 16
-                var increment = (bell + 8 - (bell % 8)) % 24;
+        // Do the magic 'cause for calculations 16:00 is 0, 00:00 is 8 and 08:00 is 16
+        var increment = (bell + 8 - (bell % 8)) % 24;
 
-                // Take Eorzea days since unix epoch
-                var totalDays = unixSeconds / 4200;
-                totalDays = (totalDays << 32) >>> 0; // Convert to uint
+        // Take Eorzea days since unix epoch
+        var totalDays = unixSeconds / 4200;
+        totalDays = (totalDays << 32) >>> 0; // Convert to uint
 
-                // 0x64 = 100
-                var calcBase = totalDays * 100 + increment;
+        // 0x64 = 100
+        var calcBase = totalDays * 100 + increment;
 
-                // 0xB = 11
-                var step1 = (calcBase << 11) ^ calcBase;
-                var step2 = (step1 >>> 8) ^ step1;
+        // 0xB = 11
+        var step1 = (calcBase << 11) ^ calcBase;
+        var step2 = (step1 >>> 8) ^ step1;
 
-                // 0x64 = 100
-                return step2 % 100;
-            }
-            /*
+        // 0x64 = 100
+        return step2 % 100;
+    }
+            /* 
              * Copy End
              */
         </script>
