@@ -2,32 +2,43 @@
     Layout = "~/_SiteLayout.cshtml";
     Page.Title = "FFXIV Fishing Tracker";
     var userName = WebSecurity.CurrentUserName;
-    var db = Database.Open("LocalMySqlServer");
+    var db = Database.Open("StarterSite");
     var selectFishQuery = "";
+    int userId = -1;
     if (WebSecurity.IsAuthenticated)
     {
-        selectFishQuery = "SELECT fish.fishId, fish.fishName, fish.fishLevel, fish.fishDescription, fish.fishPatch, user_fish_link.caught FROM fish INNER JOIN user_fish_link ON fish.fishName = user_fish_link.fish WHERE user_fish_link.user = '" + userName + "'";
+        // this extra query to get the userId will slow things down, but without retreiving the userId here, it is impossible to save without multiple queries later
+        userId = db.Query("SELECT userId from UserProfile where Email = '" + userName + "'").ElementAt(0).UserId;
+        selectFishQuery = "SELECT fish.fishId, fish.fishName, fish.fishLevel, fish.fishDescription, fish.fishPatch, user_fish_junction.caught FROM " +
+            "fish INNER JOIN user_fish_junction ON fish.fishId = user_fish_junction.fishId  WHERE user_fish_junction.userId = '" + userId + "'";
     } else
     {
-        selectFishQuery = "SELECT fish.fishId, fish.fishName, fish.fishLevel, fish.fishDescription, fish.fishPatch, 0 as caught FROM fish";
+        selectFishQuery = "SELECT fish.fishId, fish.fishName, fish.fishLevel, fish.fishDescription, fish.fishPatch, CAST(0 as bit) as caught FROM fish";
     }
-
-    var saveFishStatement = "";
-    sbyte s = 0;
+    var saveCaughtFishStatement = "";
+    var saveNotCaughtFishStatement = "";
     if (IsPost)
     {
-        saveFishStatement = "INSERT INTO user_fish_link (user, fish, caught) VALUES ";
+        // -1 at the start of each ID to ensure the SQL is valid, -1 was chosen as it is an impossible ID, so should have no effect on the query itself.
+        saveCaughtFishStatement = "UPDATE user_fish_junction SET caught = 1 WHERE userId = " + userId + " AND fishId IN (-1";
+        saveNotCaughtFishStatement = "UPDATE user_fish_junction SET caught = 0 WHERE userId = " + userId + " AND fishId IN (-1";
         for (int i = 0; i < Request.Form.Count; i++)
         {
-            if (Request.Form[i] == "Caught,false") { s = 1; } else { s = 0; }
-            saveFishStatement = saveFishStatement + "('" + WebSecurity.CurrentUserName + "','" + Request.Form.AllKeys[i] + "'," + s + ")";
-            if (i != Request.Form.Count - 1) { saveFishStatement = saveFishStatement + ","; }
+            //"Caught, row" means caught=true, otherwise will just return "row", this is a workaround as unchecked checkboxes not returning in forms.
+            if (Request.Form[i] == "Caught,row")
+            {
+                saveCaughtFishStatement += "," + Request.Form.AllKeys[i];
+            } else
+            {
+                saveNotCaughtFishStatement += "," + Request.Form.AllKeys[i];
+            }
         }
-        saveFishStatement = saveFishStatement + "ON DUPLICATE KEY UPDATE user=VALUES(user),fish=VALUES(fish),caught=VALUES(caught)";
-        db.Execute(saveFishStatement);
-        //Response.Redirect(Request.Path);
+        saveCaughtFishStatement += ")"; 
+        saveNotCaughtFishStatement += ")";
+        db.Execute(saveCaughtFishStatement);
+        db.Execute(saveNotCaughtFishStatement);
     }
-    }
+}
 
 
     @section featured {
@@ -64,10 +75,10 @@
                             <td class="fishLevelRow">@row.fishLevel</td>
                             <td class="fishDescriptionRow">@row.fishDescription</td>
                             <td class="fishPatchRow">@row.fishPatch</td>
-                            @if(@row.caught == 1){
-                            <td><input type="checkbox" name="@row.fishName" value="Caught" checked="checked"/><input type="hidden" name="@row.fishName" value="false"/></td>
+                            @if(@row.caught){
+                            <td><input type="checkbox" name="@row.fishId" value="Caught" checked="checked"/><input type="hidden" name="@row.fishId" value="row"/></td>
                             } else {
-                            <td><input type="checkbox" name="@row.fishName" value="Caught"/><input type="hidden" name="@row.fishName" value="false" /></td>
+                            <td><input type="checkbox" name="@row.fishId" value="Caught"/><input type="hidden" name="@row.fishId" value="row" /></td>
                             }
                         </tr>
                     }
@@ -81,7 +92,7 @@
         <script>
             $(function () {
                 // on filter - set filter property
-                // on hide caught - set hideCaught property? 
+                // on hide caught - select all caught - set 'hideCaught' property that has hide CSS (reserve caught property for potential styling later)
 
                 $(document).ready(filter); //On page reload - if option already selected, filter appropriately.
                 $("#selectPatch").on("change", filter); // filter when patch selection box changed.

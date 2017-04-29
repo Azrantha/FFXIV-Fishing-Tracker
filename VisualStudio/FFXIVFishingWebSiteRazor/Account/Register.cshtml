@@ -39,15 +39,14 @@
         // If all information is valid, create a new account
         if (Validation.IsValid()) {
             // Insert a new user into the database
-            var mysqldb = Database.Open("LocalMySqlServer");
             var db = Database.Open("StarterSite");
 
             // Check if user already exists
             var user = db.QuerySingle("SELECT Email FROM UserProfile WHERE LOWER(Email) = LOWER(@0)", email);
             if (user == null) {
                 // Insert email into the profile table
-                mysqldb.Execute("INSERT INTO user (userName) VALUES (@0)", email);
                 db.Execute("INSERT INTO UserProfile (Email) VALUES (@0)", email);
+                db.Execute("INSERT INTO user_fish_junction (fishId, userId) SELECT fish.fishId, UserProfile.userId from fish, UserProfile WHERE UserProfile.Email = (@0)", email);
 
                 // Create and associate a new entry in the membership database.
                 // If successful, continue processing the request
