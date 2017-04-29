@@ -70,16 +70,24 @@
                 <tbody>
                     @foreach (var row in db.Query(selectFishQuery))
                     {
-                        <tr class="fishRow" id="fishRow-@row.fishId" patch="@row.fishPatch">
+                        var classTags = "fishRow";
+                        if (@row.caught)
+                        {
+                            classTags += " caught";
+                        }
+                        <tr class="@classTags" id="@row.fishId" patch="@row.fishPatch">
                             <td class="fishNameRow">@row.fishName</td>
                             <td class="fishLevelRow">@row.fishLevel</td>
                             <td class="fishDescriptionRow">@row.fishDescription</td>
                             <td class="fishPatchRow">@row.fishPatch</td>
-                            @if(@row.caught){
-                            <td><input type="checkbox" name="@row.fishId" value="Caught" checked="checked"/><input type="hidden" name="@row.fishId" value="row"/></td>
-                            } else {
-                            <td><input type="checkbox" name="@row.fishId" value="Caught"/><input type="hidden" name="@row.fishId" value="row" /></td>
-                            }
+                        @if (@row.caught)
+                        {
+                            <td><input type="checkbox" class="fishRowCaught" name="caught-@row.fishId" value="Caught" checked="checked" /><input type="hidden" name="@row.fishId" value="row" /></td>
+                        }
+                        else
+                        {
+                            <td><input type="checkbox" class="fishRowCaught"  name="caught-@row.fishId" value="Caught" /><input type="hidden" name="@row.fishId" value="row" /></td>
+                        }
                         </tr>
                     }
                 </tbody>
@@ -91,64 +99,67 @@
         </form>
         <script>
             $(function () {
-                // on filter - set filter property
-                // on hide caught - select all caught - set 'hideCaught' property that has hide CSS (reserve caught property for potential styling later)
+                //all filtering methods need to be called on page load to ensure filtering is done correctly if the page is refreshed.
+                $(document).ready(function () {
+                    //select rows where the fish has been caught, and add the caught class - this is to ensure the class is applied correctly after a refresh.
+                    var caughtRows = $(".fishRow").filter(function () {
+                        return $(this).children().children(".fishRowCaught")[0].checked;
+                    })
+                    caughtRows.addClass("caught");
 
-                $(document).ready(filter); //On page reload - if option already selected, filter appropriately.
-                $("#selectPatch").on("change", filter); // filter when patch selection box changed.
+                    filter();
+                    hideCaught();
+                });
 
+                $("#selectPatch").change(filter); // filter by patch when patch selection box changed
+                $("#hideCaughtToggle").change(hideCaught); //hide all caught fish if this is toggled on, or show them if toggled off and they are not filtered.
+
+                $(".fishRowCaught").change(function () {
+                    var choice = $("#hideCaughtToggle")[0].checked;
+                    if (choice) {
+                        //if the hide taught toggle is currently checked, then this row must not have previously been checked (as it was visible)
+                        //therefore, this row should now be marked as both caught and hidden. This is faster than executing the hideCaught function.
+                        $(this).parents(".fishRow").addClass("caught").addClass("hidden");
+                    } else {
+                        //Otherwise, toggle the caught class on the parent.
+                        $(this).parents(".fishRow").toggleClass("caught")
+                    }
+                });
+
+                /*
+                 * Depending on the choice in the selectPatch drop down, display all fish, or add/remvoe the class Filtered to the hidden fish.
+                 */
                 function filter() {
                     var choice = $("#selectPatch")[0].value;
-                    if (choice == "none") { $("#fishTable").find(".fishRow").show(); return; }
-                    var rows = $("#fishTable").find(".fishRow");
-                    var show = rows.filter(function (index) {
-                        var t = (parseInt(choice) == parseInt($(this).attr("patch")));
-                        return t;
+                    var rows = $(".fishRow");
+                    if (choice == "none") {
+                        rows.removeClass("filtered");
+                        return;
+                    }
+                    var showRows = rows.filter(function () {
+                        return (parseInt(choice) == parseInt($(this).attr("patch")));
                     });
-                    show.show();
-                    var hide = rows.filter(function (index) {
-                        var t = (parseInt(choice) != parseInt($(this).attr("patch")));
-                        return t;
+                    showRows.removeClass("filtered");
+                    var hideRows = rows.filter(function () {
+                        return (parseInt(choice) != parseInt($(this).attr("patch")));
                     });
-                    hide.hide();
+                    hideRows.addClass("filtered");
+                }
+
+                /*
+                 * Depending on whether the hideCaughtToggle is checked, either add or remove the hidden class from caught rows.
+                 */
+                function hideCaught(){
+                    var choice = $("#hideCaughtToggle")[0].checked;
+                    var caughtRows = $(".caught")
+                    if (choice) {
+                        caughtRows.addClass("hidden");
+                    } else {
+                        caughtRows.removeClass("hidden");
+                    }
                 }
 
             });
-
-
-            /*
-             * Following code copied and adapted from
-             * https://www.reddit.com/r/ffxiv/comments/33tqok/cloudy_with_a_chance_of_garlok_predicting_eorzean/
-             * until corresponding Copy End comment.
-             */
-            function calculateForecastTarget(lDate) {
-                // Thanks to Rogueadyn's SaintCoinach library for this calculation.
-                // lDate is the current local time.
-
-                var unixSeconds = parseInt(lDate.getTime() / 1000);
-                // Get Eorzea hour for weather start
-                var bell = unixSeconds / 175;
-
-                // Do the magic 'cause for calculations 16:00 is 0, 00:00 is 8 and 08:00 is 16
-                var increment = (bell + 8 - (bell % 8)) % 24;
-
-                // Take Eorzea days since unix epoch
-                var totalDays = unixSeconds / 4200;
-                totalDays = (totalDays << 32) >>> 0; // Convert to uint
-
-                // 0x64 = 100
-                var calcBase = totalDays * 100 + increment;
-
-                // 0xB = 11
-                var step1 = (calcBase << 11) ^ calcBase;
-                var step2 = (step1 >>> 8) ^ step1;
-
-                // 0x64 = 100
-                return step2 % 100;
-            }
-            /*
-             * Copy End
-             */
         </script>
         @*<p>
             To learn more about ASP.NET Web Pages, visit

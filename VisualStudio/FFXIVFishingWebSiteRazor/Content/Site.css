@@ -178,11 +178,11 @@ footer {
     
 /* hiding
 ----------------------------------------------------------*/
-#filtered {
+.filtered {
     display:none;
 }
 
-#hideCaught{
+.hidden{
     display:none
 }
 
