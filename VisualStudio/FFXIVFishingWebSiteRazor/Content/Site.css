@@ -31,7 +31,7 @@ a {
         background-color: #c7d1d6;
     }
 
-header, footer, hgroup,
+header, footer, div,
 nav, section {
     display: block;
 }
@@ -236,7 +236,7 @@ ul#menu {
         padding: 20px 40px 30px 40px;
     }
 
-        .featured hgroup.title h1, .featured hgroup.title h2 {
+        .featured div.title h1, .featured div.title h2, .featured div.title h3 {
             color: #fff;
         }
 
@@ -245,17 +245,22 @@ ul#menu {
         }
 
 /* page titles */
-hgroup.title {
+/* in a title div, h3's appear as right-aligned h2's*/
+div.title {
     margin-bottom: 10px;
 }
 
-hgroup.title h1, hgroup.title h2 {
+div.title h1, div.title h2, div.title h3 {
     display: inline;
 }
 
-hgroup.title h2 {
+div.title h2, div.title h3 {
     font-weight: normal;
     margin-left: 3px;
+}
+
+div.title h3 {
+    font-size: 1.75em;
 }
 
 /* features */

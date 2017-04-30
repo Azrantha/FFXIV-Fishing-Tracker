@@ -7,24 +7,24 @@
     int userId = -1;
     if (WebSecurity.IsAuthenticated)
     {
-        // this extra query to get the userId will slow things down, but without retreiving the userId here, it is impossible to save without multiple queries later
+        //store the userId to prevent multiple queries being run unnecessarily.
         userId = db.Query("SELECT userId from UserProfile where Email = '" + userName + "'").ElementAt(0).UserId;
-        selectFishQuery = "SELECT fish.fishId, fish.fishName, fish.fishLevel, fish.fishDescription, fish.fishPatch, user_fish_junction.caught FROM " +
+        selectFishQuery = "SELECT fish.fishId, fish.fishName, fish.fishLevel, fish.fishDescription, fish.fishPatch, fish.fishEorzeaDBLink, user_fish_junction.caught FROM " +
             "fish INNER JOIN user_fish_junction ON fish.fishId = user_fish_junction.fishId  WHERE user_fish_junction.userId = '" + userId + "'";
     } else
     {
-        selectFishQuery = "SELECT fish.fishId, fish.fishName, fish.fishLevel, fish.fishDescription, fish.fishPatch, CAST(0 as bit) as caught FROM fish";
+        selectFishQuery = "SELECT fish.fishId, fish.fishName, fish.fishLevel, fish.fishDescription, fish.fishPatch, fish.fishEorzeaDBLink, CAST(0 as bit) as caught FROM fish";
     }
     var saveCaughtFishStatement = "";
     var saveNotCaughtFishStatement = "";
-    if (IsPost)
+    if (IsPost && WebSecurity.IsAuthenticated)
     {
-        // -1 at the start of each ID to ensure the SQL is valid, -1 was chosen as it is an impossible ID, so should have no effect on the query itself.
+        // -1 at the start of each ID to ensure the SQL is valid, -1 was chosen as it is an impossible ID, so will have no effect on the query itself.
         saveCaughtFishStatement = "UPDATE user_fish_junction SET caught = 1 WHERE userId = " + userId + " AND fishId IN (-1";
         saveNotCaughtFishStatement = "UPDATE user_fish_junction SET caught = 0 WHERE userId = " + userId + " AND fishId IN (-1";
         for (int i = 0; i < Request.Form.Count; i++)
         {
-            //"Caught, row" means caught=true, otherwise will just return "row", this is a workaround as unchecked checkboxes not returning in forms.
+            //"Caught, row" means caught=true, otherwise will just return "row", this is a workaround for unchecked checkboxes not returning in forms.
             if (Request.Form[i] == "Caught,row")
             {
                 saveCaughtFishStatement += "," + Request.Form.AllKeys[i];
@@ -33,21 +33,19 @@
                 saveNotCaughtFishStatement += "," + Request.Form.AllKeys[i];
             }
         }
-        saveCaughtFishStatement += ")"; 
+        saveCaughtFishStatement += ")";
         saveNotCaughtFishStatement += ")";
         db.Execute(saveCaughtFishStatement);
         db.Execute(saveNotCaughtFishStatement);
     }
 }
-
-
     @section featured {
 <section class="featured">
     <div class="content-wrapper">
-        <hgroup class="title">
+        <div class="title">
             <h1>@Page.Title.</h1>
             <h2>A simple progress tracking fishing website for FFXIV.</h2>
-        </hgroup>
+        </div>
         <div class="horizontal">
             <select id="selectPatch">
                 <option value="none">All Fish</option>
@@ -65,29 +63,26 @@
                         <th>Description</th>
                         <th>Patch</th>
                         <th>Caught</th>
+                        <th>Eorzea DB tooltip</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var row in db.Query(selectFishQuery))
                     {
-                        var classTags = "fishRow";
-                        if (@row.caught)
-                        {
-                            classTags += " caught";
-                        }
-                        <tr class="@classTags" id="@row.fishId" patch="@row.fishPatch">
-                            <td class="fishNameRow">@row.fishName</td>
+                        <tr @(row.caught ? "class=\"fishRow caught\"" : "class=\"fishRow\"") id="@row.fishId" patch="@row.fishPatch">
+                            <td class="fishNameRow"><a href="~/fish/@row.fishId">@row.fishName</a></td>
                             <td class="fishLevelRow">@row.fishLevel</td>
                             <td class="fishDescriptionRow">@row.fishDescription</td>
                             <td class="fishPatchRow">@row.fishPatch</td>
-                        @if (@row.caught)
+                        @if (row.caught)
                         {
-                            <td><input type="checkbox" class="fishRowCaught" name="caught-@row.fishId" value="Caught" checked="checked" /><input type="hidden" name="@row.fishId" value="row" /></td>
+                            <td><input type="checkbox" class="fishRowCaught" name="@row.fishId" value="Caught" checked="checked" /><input type="hidden" name="@row.fishId" value="row" /></td>
                         }
                         else
                         {
-                            <td><input type="checkbox" class="fishRowCaught"  name="caught-@row.fishId" value="Caught" /><input type="hidden" name="@row.fishId" value="row" /></td>
+                            <td><input type="checkbox" class="fishRowCaught"  name="@row.fishId" value="Caught" /><input type="hidden" name="@row.fishId" value="row" /></td>
                         }
+                            <td class="fishEorzeaDBLink"><a href="@row.fishEorzeaDBLink" class="eorzeadb_link">tooltip</a></td>
                         </tr>
                     }
                 </tbody>
@@ -97,70 +92,7 @@
                 <button type="submit" value="Submit" class="submit">Save Caught Status</button>
             }
         </form>
-        <script>
-            $(function () {
-                //all filtering methods need to be called on page load to ensure filtering is done correctly if the page is refreshed.
-                $(document).ready(function () {
-                    //select rows where the fish has been caught, and add the caught class - this is to ensure the class is applied correctly after a refresh.
-                    var caughtRows = $(".fishRow").filter(function () {
-                        return $(this).children().children(".fishRowCaught")[0].checked;
-                    })
-                    caughtRows.addClass("caught");
-
-                    filter();
-                    hideCaught();
-                });
-
-                $("#selectPatch").change(filter); // filter by patch when patch selection box changed
-                $("#hideCaughtToggle").change(hideCaught); //hide all caught fish if this is toggled on, or show them if toggled off and they are not filtered.
-
-                $(".fishRowCaught").change(function () {
-                    var choice = $("#hideCaughtToggle")[0].checked;
-                    if (choice) {
-                        //if the hide taught toggle is currently checked, then this row must not have previously been checked (as it was visible)
-                        //therefore, this row should now be marked as both caught and hidden. This is faster than executing the hideCaught function.
-                        $(this).parents(".fishRow").addClass("caught").addClass("hidden");
-                    } else {
-                        //Otherwise, toggle the caught class on the parent.
-                        $(this).parents(".fishRow").toggleClass("caught")
-                    }
-                });
-
-                /*
-                 * Depending on the choice in the selectPatch drop down, display all fish, or add/remvoe the class Filtered to the hidden fish.
-                 */
-                function filter() {
-                    var choice = $("#selectPatch")[0].value;
-                    var rows = $(".fishRow");
-                    if (choice == "none") {
-                        rows.removeClass("filtered");
-                        return;
-                    }
-                    var showRows = rows.filter(function () {
-                        return (parseInt(choice) == parseInt($(this).attr("patch")));
-                    });
-                    showRows.removeClass("filtered");
-                    var hideRows = rows.filter(function () {
-                        return (parseInt(choice) != parseInt($(this).attr("patch")));
-                    });
-                    hideRows.addClass("filtered");
-                }
-
-                /*
-                 * Depending on whether the hideCaughtToggle is checked, either add or remove the hidden class from caught rows.
-                 */
-                function hideCaught(){
-                    var choice = $("#hideCaughtToggle")[0].checked;
-                    var caughtRows = $(".caught")
-                    if (choice) {
-                        caughtRows.addClass("hidden");
-                    } else {
-                        caughtRows.removeClass("hidden");
-                    }
-                }
-
-            });
-        </script>
+        <script src="~/Scripts/filtering.js"></script>
         @*<p>
             To learn more about ASP.NET Web Pages, visit
             <a href="http://asp.net/webpages" title="ASP.NET Web Pages Website">http://asp.net/webpages</a>.
