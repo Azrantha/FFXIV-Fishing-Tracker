@@ -39,7 +39,7 @@
         <div class="content-wrapper">
             <div class="title">
                 <div class="float-left">
-                    <h1>@Page.Title.</h1>
+                    <h1>Fish: <a href="@Request.RawUrl">@Page.Title</a>.</h1>
                     <h2>Lv. @fish.fishLevel</h2>
                 </div>
                 @if (WebSecurity.IsAuthenticated)
@@ -59,24 +59,32 @@
         </div>
     </section>
 }
-
-<p>Added in patch: @fish.fishPatch</p>
-<p>Eorzea DB: <a href="@dbResults.ElementAt(0).fishEorzeaDBLink" class="eorzeadb_link">link</a></p>
-<h3>Caught in the following locations:</h3>
-<table id="locationTable">
-    <thead>
-        <tr>
-            <th>Locaton</th>
-            <th>Map</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var row in dbResults)
-        {
-            <tr class="locationRow" id="@row.locationId">
-                <td class="locationName"><a href="~/Locations/@row.locationId">@row.locationName</a></td>
-                <td class="mapName"><a href="~/Maps/@row.mapId">@row.mapName</a></td>
+<article>
+    <p>Caught in the following locations:</p>
+    <table id="locationTable">
+        <thead>
+            <tr>
+                <th>Locaton</th>
+                <th>Map</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var row in dbResults)
+            {
+                <tr class="locationRow" id="@row.locationId">
+                    <td class="locationName"><a href="~/Locations/@row.locationId">@row.locationName</a></td>
+                    <td class="mapName"><a href="~/Maps/@row.mapId">@row.mapName</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</article>
+<aside>
+    <p>Added in patch @fish.fishPatch</p>
+    <p>Eorzea DB: <a href="@dbResults.ElementAt(0).fishEorzeaDBLink" class="eorzeadb_link">link</a></p>
+</aside>
+<script>
+    $(document).ready(function() {
+        $('#locationTable').DataTable();
+    });
+</script>

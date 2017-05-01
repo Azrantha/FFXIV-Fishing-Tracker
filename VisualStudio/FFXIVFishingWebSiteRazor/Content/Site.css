@@ -225,6 +225,20 @@ ul#menu {
 /* page elements
 ----------------------------------------------------------*/
 /* featured */
+
+.featured a {
+    color: #fff;
+    outline: none;
+    padding-left: 3px;
+    padding-right: 3px;
+    text-decoration: underline;
+}
+
+.featured a:link, .featured a:visited,
+.featured a:active, .featured a:hover {
+        color: #fff;
+    }
+
 .featured {
     background-color: #fff;
 }

@@ -1,35 +1,28 @@
 ﻿@{
     Layout = "~/_SiteLayout.cshtml";
-    Page.Title = "About";
+    Page.Title = "About FFXIV Fishing Tracker";
 }
 
-<div class="title">
-    <h1>@Page.Title.</h1>
-    <h2>Your app description page.</h2>
-</div>
+@section featured {
+<section class="featured">
+    <div class="content-wrapper">
+        <div class="title">
+            <h1>@Page.Title.</h1>
+        </div>
+   </div>
+</section>
+}
 
-<article>
-    <p>
-        Use this area to provide additional information.
-    </p>
+<p>
+    FFXIV Fishing Tracker is a website for tracking your progress catching the various fish found in Final Fantasy XIV (FFXIV).
+    You may use this website to track which fish you have caught, with various options for filtering them and searching for them based on map or location.
+</p>
 
-    <p>
-        Use this area to provide additional information.
-    </p>
-
-    <p>
-        Use this area to provide additional information.
-    </p>
-</article>
-
-<aside>
+@*<aside> /*This could be used for a donations box later*/
     <h3>Aside Title</h3>
-    <p>
-        Use this area to provide additional information.
-    </p>
     <ul>
-        <li><a href="~/">Home</a></li>
+        <li><a href="~/">Tracker</a></li>
         <li><a href="~/About">About</a></li>
         <li><a href="~/Contact">Contact</a></li>
     </ul>
-</aside>
+</aside>*@

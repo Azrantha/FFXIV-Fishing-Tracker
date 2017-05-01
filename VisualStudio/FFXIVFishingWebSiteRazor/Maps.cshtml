@@ -22,18 +22,17 @@
     <section class="featured">
         <div class="content-wrapper">
             <div class="title">
-                <h1>@Page.Title.</h1>
+                <h1>Map: <a href="@Request.RawUrl">@Page.Title.</a></h1>
             </div>
         </div>
     </section>
 }
 
-<h3>Contains the following locations:</h3>
+<p>Contains the following locations:</p>
 <table id="locationTable">
     <thead>
         <tr>
-            <th>Locaton</th>
-            <th>Map</th>
+            <th>Location</th>
         </tr>
     </thead>
     <tbody>
@@ -41,7 +40,6 @@
         {
             <tr class="locationRow" id="@row.locationId">
                 <td class="locationName"><a href="~/Locations/@row.locationId">@row.locationName</a></td>
-                <td class="mapName"><a href="~/Maps/@row.mapId">@row.mapName</a></td>
             </tr>
         }
     </tbody>
