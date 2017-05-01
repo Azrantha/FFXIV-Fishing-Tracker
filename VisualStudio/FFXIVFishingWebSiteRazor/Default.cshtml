@@ -46,52 +46,7 @@
             <h1>@Page.Title.</h1>
             <h2>A simple progress tracking fishing website for FFXIV.</h2>
         </div>
-        <div class="horizontal">
-            <select id="selectPatch">
-                <option value="none">All Fish</option>
-                <option value="2">A Realm Reborn Fish (2.x)</option>
-                <option value="3">Heavensward Fish (3.x)</option>
-            </select>
-            <label><input type="checkbox" name="hideCaught" id="hideCaughtToggle" value="true" /> Hide caught fish</label>
-        </div>
-        <form method="post">
-            <table id="fishTable">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Level</th>
-                        <th>Description</th>
-                        <th>Patch</th>
-                        <th>Caught</th>
-                        <th>Eorzea DB tooltip</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var row in db.Query(selectFishQuery))
-                    {
-                        <tr @(row.caught ? "class=\"fishRow caught\"" : "class=\"fishRow\"") id="@row.fishId" patch="@row.fishPatch">
-                            <td class="fishNameRow"><a href="~/fish/@row.fishId">@row.fishName</a></td>
-                            <td class="fishLevelRow">@row.fishLevel</td>
-                            <td class="fishDescriptionRow">@row.fishDescription</td>
-                            <td class="fishPatchRow">@row.fishPatch</td>
-                        @if (row.caught)
-                        {
-                            <td><input type="checkbox" class="fishRowCaught" name="@row.fishId" value="Caught" checked="checked" /><input type="hidden" name="@row.fishId" value="row" /></td>
-                        }
-                        else
-                        {
-                            <td><input type="checkbox" class="fishRowCaught"  name="@row.fishId" value="Caught" /><input type="hidden" name="@row.fishId" value="row" /></td>
-                        }
-                            <td class="fishEorzeaDBLink"><a href="@row.fishEorzeaDBLink" class="eorzeadb_link">tooltip</a></td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-            @if (WebSecurity.IsAuthenticated)
-            {
-                <button type="submit" value="Submit" class="submit">Save Caught Status</button>
-            }
-        </form>
+        
         <script src="~/Scripts/filtering.js"></script>
         @*<p>
             To learn more about ASP.NET Web Pages, visit
@@ -103,6 +58,55 @@
     </div>
 </section>
 }
+
+<div class="horizontal">
+    <select id="selectPatch">
+        <option value="none">All Fish</option>
+        <option value="2">A Realm Reborn Fish (2.x)</option>
+        <option value="3">Heavensward Fish (3.x)</option>
+    </select>
+    <label id="horizontalToggleLabel"><input type="checkbox" name="hideCaught" id="hideCaughtToggle" value="true" /> Hide caught fish</label>
+</div>
+<form method="post">
+    <table id="fishTable">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Level</th>
+                <th>Description</th>
+                <th>Patch</th>
+                <th>Caught</th>
+                <th>Eorzea DB tooltip</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var row in db.Query(selectFishQuery))
+            {
+                <tr @(row.caught ? "class=\"fishRow caught\"" : "class=\"fishRow\"") id="@row.fishId" patch="@row.fishPatch">
+                    <td class="fishNameRow"><a href="~/fish/@row.fishId">@row.fishName</a></td>
+                    <td class="fishLevelRow">@row.fishLevel</td>
+                    <td class="fishDescriptionRow">@row.fishDescription</td>
+                    <td class="fishPatchRow">@row.fishPatch</td>
+                    @if (row.caught)
+                    {
+                        <td><input type="checkbox" class="fishRowCaught" name="@row.fishId" value="Caught" checked="checked" /><input type="hidden" name="@row.fishId" value="row" /></td>
+                    }
+                    else
+                    {
+                        <td><input type="checkbox" class="fishRowCaught" name="@row.fishId" value="Caught" /><input type="hidden" name="@row.fishId" value="row" /></td>
+                    }
+                    <td class="fishEorzeaDBLink"><a href="@row.fishEorzeaDBLink" class="eorzeadb_link">tooltip</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    @if (WebSecurity.IsAuthenticated)
+            {
+        <button type="submit" value="Submit" class="submit">Save Caught Status</button>
+    }
+</form>
+
+
 
 @*<h3>We suggest the following:</h3>
 

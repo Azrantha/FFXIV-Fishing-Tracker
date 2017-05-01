@@ -1,130 +1,48 @@
 ﻿@{
     Layout = "~/_SiteLayout.cshtml";
-    Page.Title = "FFXIV Fishing Tracker";
     var userName = WebSecurity.CurrentUserName;
     var db = Database.Open("StarterSite");
-    var selectFishQuery = "";
-    int userId = -1;
-    if (WebSecurity.IsAuthenticated)
+    if (UrlData.Count != 1)
     {
-        //store the userId to prevent multiple queries being run unnecessarily.
-        userId = db.Query("SELECT userId from UserProfile where Email = '" + userName + "'").ElementAt(0).UserId;
-        selectFishQuery = "SELECT fish.fishId, fish.fishName, fish.fishLevel, fish.fishDescription, fish.fishPatch, user_fish_junction.caught FROM " +
-            "fish INNER JOIN user_fish_junction ON fish.fishId = user_fish_junction.fishId  WHERE user_fish_junction.userId = '" + userId + "'";
+        Response.Redirect("~/Default.cshtml");
     }
-    else
-    {
-        selectFishQuery = "SELECT fish.fishId, fish.fishName, fish.fishLevel, fish.fishDescription, fish.fishPatch, CAST(0 as bit) as caught FROM fish";
-    }
-    var saveCaughtFishStatement = "";
-    var saveNotCaughtFishStatement = "";
-    if (IsPost && WebSecurity.IsAuthenticated)
-    {
-        // -1 at the start of each ID to ensure the SQL is valid, -1 was chosen as it is an impossible ID, so will have no effect on the query itself.
-        saveCaughtFishStatement = "UPDATE user_fish_junction SET caught = 1 WHERE userId = " + userId + " AND fishId IN (-1";
-        saveNotCaughtFishStatement = "UPDATE user_fish_junction SET caught = 0 WHERE userId = " + userId + " AND fishId IN (-1";
-        for (int i = 0; i < Request.Form.Count; i++)
-        {
-            //"Caught, row" means caught=true, otherwise will just return "row", this is a workaround for unchecked checkboxes not returning in forms.
-            if (Request.Form[i] == "Caught,row")
-            {
-                saveCaughtFishStatement += "," + Request.Form.AllKeys[i];
-            }
-            else
-            {
-                saveNotCaughtFishStatement += "," + Request.Form.AllKeys[i];
-            }
-        }
-        saveCaughtFishStatement += ")";
-        saveNotCaughtFishStatement += ")";
-        db.Execute(saveCaughtFishStatement);
-        db.Execute(saveNotCaughtFishStatement);
-    }
+    var mapId = UrlData.ElementAt(0);
+    var selectMapQuery = "SELECT map.mapId, map.mapName, location.locationName, location.locationId " +
+            "FROM map INNER JOIN location ON map.mapId = location.locationId " +
+            "WHERE map.mapId = " + mapId;
+    
+
+    Console.Write(selectMapQuery);
+    var dbResults = db.Query(selectMapQuery);
+    var map = dbResults.ElementAt(0);
+    Page.Title = map.mapName;
 }
 
 @section featured {
     <section class="featured">
         <div class="content-wrapper">
-            <hgroup class="title">
+            <div class="title">
                 <h1>@Page.Title.</h1>
-                <h2>A simple progress tracking fishing website for FFXIV.</h2>
-            </hgroup>
-            <div class="horizontal">
-                <select id="selectPatch">
-                    <option value="none">All Fish</option>
-                    <option value="2">A Realm Reborn Fish (2.x)</option>
-                    <option value="3">Heavensward Fish (3.x)</option>
-                </select>
-                <label><input type="checkbox" name="hideCaught" id="hideCaughtToggle" value="true" /> Hide caught fish</label>
             </div>
-            <form method="post">
-                <table id="fishTable">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Level</th>
-                            <th>Description</th>
-                            <th>Patch</th>
-                            <th>Caught</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var row in db.Query(selectFishQuery))
-                        {
-                            <tr @(row.caught ? "class=\"fishRow caught\"" : "class=\"fishRow\"") id="@row.fishId" patch="@row.fishPatch">
-                                <td class="fishNameRow">@row.fishName</td>
-                                <td class="fishLevelRow">@row.fishLevel</td>
-                                <td class="fishDescriptionRow">@row.fishDescription</td>
-                                <td class="fishPatchRow">@row.fishPatch</td>
-                                @if (row.caught)
-                                {
-                                    <td><input type="checkbox" class="fishRowCaught" name="@row.fishId" value="Caught" checked="checked" /><input type="hidden" name="@row.fishId" value="row" /></td>
-                                }
-                                else
-                                {
-                                    <td><input type="checkbox" class="fishRowCaught" name="@row.fishId" value="Caught" /><input type="hidden" name="@row.fishId" value="row" /></td>
-                                }
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-                @if (WebSecurity.IsAuthenticated)
-                {
-                    <button type="submit" value="Submit" class="submit">Save Caught Status</button>
-                }
-            </form>
-            <script src="~/Scripts/filtering.js"></script>
-            @*<p>
-                    To learn more about ASP.NET Web Pages, visit
-                    <a href="http://asp.net/webpages" title="ASP.NET Web Pages Website">http://asp.net/webpages</a>.
-                    The page features <mark>videos, tutorials, and samples</mark> to help you get the most from ASP.NET Web Pages.
-                    If you have any questions about ASP.NET Web Pages, visit
-                    <a href="http://forums.iis.net/1166.aspx" title="ASP.NET Web Pages Forum">our forums</a>.
-                </p>*@
         </div>
     </section>
 }
 
-@*<h3>We suggest the following:</h3>
-
-    <ol class="round">
-        <li class="one">
-            <h5>Getting Started</h5>
-            ASP.NET Web Pages and the new Razor syntax provide a fast, approachable, and lightweight way to combine server code with HTML
-            to create dynamic web content. Connect to databases, add video, link to social networking sites, and include many more features
-            that let you create beautiful sites using the latest web standards.
-            <a href="http://go.microsoft.com/fwlink/?LinkId=245139">Learn more…</a>
-        </li>
-
-        <li class="two">
-            <h5>Add NuGet packages and jump start your coding</h5>
-            NuGet makes it easy to install and update free libraries and tools.
-            <a href="http://go.microsoft.com/fwlink/?LinkId=245140">Learn more…</a>
-        </li>
-
-        <li class="three">
-            <h5>Find Web Hosting</h5>
-            You can easily find a web hosting company that offers the right mix of features and price for your applications.
-            <a href="http://go.microsoft.com/fwlink/?LinkId=245143">Learn more…</a>
-        </li>
-    </ol>*@
+<h3>Contains the following locations:</h3>
+<table id="locationTable">
+    <thead>
+        <tr>
+            <th>Locaton</th>
+            <th>Map</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var row in dbResults)
+        {
+            <tr class="locationRow" id="@row.locationId">
+                <td class="locationName"><a href="~/Locations/@row.locationId">@row.locationName</a></td>
+                <td class="mapName"><a href="~/Maps/@row.mapId">@row.mapName</a></td>
+            </tr>
+        }
+    </tbody>
+</table>

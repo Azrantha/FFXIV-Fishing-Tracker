@@ -32,30 +32,6 @@
     var dbResults = db.Query(selectAFishQuery);
     var fish = dbResults.ElementAt(0);
     Page.Title = fish.fishName;
-    //var saveCaughtFishStatement = "";
-    //var saveNotCaughtFishStatement = "";
-    //if (IsPost && WebSecurity.IsAuthenticated)
-    //{
-    //    // -1 at the start of each ID to ensure the SQL is valid, -1 was chosen as it is an impossible ID, so will have no effect on the query itself.
-    //    saveCaughtFishStatement = "UPDATE user_fish_junction SET caught = 1 WHERE userId = " + userId + " AND fishId IN (-1";
-    //    saveNotCaughtFishStatement = "UPDATE user_fish_junction SET caught = 0 WHERE userId = " + userId + " AND fishId IN (-1";
-    //    for (int i = 0; i < Request.Form.Count; i++)
-    //    {
-    //        //"Caught, row" means caught=true, otherwise will just return "row", this is a workaround for unchecked checkboxes not returning in forms.
-    //        if (Request.Form[i] == "Caught,row")
-    //        {
-    //            saveCaughtFishStatement += "," + Request.Form.AllKeys[i];
-    //        }
-    //        else
-    //        {
-    //            saveNotCaughtFishStatement += "," + Request.Form.AllKeys[i];
-    //        }
-    //    }
-    //    saveCaughtFishStatement += ")";
-    //    saveNotCaughtFishStatement += ")";
-    //    db.Execute(saveCaughtFishStatement);
-    //    db.Execute(saveNotCaughtFishStatement);
-    //}
 }
 
 @section featured {
@@ -67,62 +43,40 @@
                     <h2>Lv. @fish.fishLevel</h2>
                 </div>
                 @if (WebSecurity.IsAuthenticated)
-                { <div class="float-right"><h3>Caught: @fish.caught</h3></div>}
-            </div>
-            <p>@fish.fishDescription</p>
-                <ul>
-                    <li>Added in patch: @fish.fishPatch</li>
-                    <li>Eorzea DB: <a href="@dbResults.ElementAt(0).fishEorzeaDBLink" class="eorzeadb_link">link</a></li>
-                </ul>
-                <h4>Found in:</h4>
-                <table id="locationTable">
-                    <thead>
-                        <tr>
-                            <th>Locaton</th>
-                            <th>Map</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    @foreach (var row in dbResults)
+                {
+                    if (fish.caught)
                     {
-                        <tr class="locationRow" id="@row.locationId">
-                            <td class="locationName"><a href="~/Locations/@row.locationId">@row.locationName</a></td>
-                            <td class="mapName"><a href="~/Maps/@row.mapId">@row.mapName</a></td>
-                        </tr>
+                        <div class="float-right"><h2>Caught</h2></div>
+                    } else
+                    {
+                        <div class="float-right"><h2>Not Caught</h2></div>
                     }
-                    </tbody>
-                </table>
-            @*<p>
-                    To learn more about ASP.NET Web Pages, visit
-                    <a href="http://asp.net/webpages" title="ASP.NET Web Pages Website">http://asp.net/webpages</a>.
-                    The page features <mark>videos, tutorials, and samples</mark> to help you get the most from ASP.NET Web Pages.
-                    If you have any questions about ASP.NET Web Pages, visit
-                    <a href="http://forums.iis.net/1166.aspx" title="ASP.NET Web Pages Forum">our forums</a>.
-                </p>*@
+                }
+            </div>
+            <div class="body">
+                <p>@fish.fishDescription</p>
+            </div>
         </div>
     </section>
 }
 
-@*<h3>We suggest the following:</h3>
-
-    <ol class="round">
-        <li class="one">
-            <h5>Getting Started</h5>
-            ASP.NET Web Pages and the new Razor syntax provide a fast, approachable, and lightweight way to combine server code with HTML
-            to create dynamic web content. Connect to databases, add video, link to social networking sites, and include many more features
-            that let you create beautiful sites using the latest web standards.
-            <a href="http://go.microsoft.com/fwlink/?LinkId=245139">Learn more…</a>
-        </li>
-
-        <li class="two">
-            <h5>Add NuGet packages and jump start your coding</h5>
-            NuGet makes it easy to install and update free libraries and tools.
-            <a href="http://go.microsoft.com/fwlink/?LinkId=245140">Learn more…</a>
-        </li>
-
-        <li class="three">
-            <h5>Find Web Hosting</h5>
-            You can easily find a web hosting company that offers the right mix of features and price for your applications.
-            <a href="http://go.microsoft.com/fwlink/?LinkId=245143">Learn more…</a>
-        </li>
-    </ol>*@
+<p>Added in patch: @fish.fishPatch</p>
+<p>Eorzea DB: <a href="@dbResults.ElementAt(0).fishEorzeaDBLink" class="eorzeadb_link">link</a></p>
+<h3>Caught in the following locations:</h3>
+<table id="locationTable">
+    <thead>
+        <tr>
+            <th>Locaton</th>
+            <th>Map</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var row in dbResults)
+        {
+            <tr class="locationRow" id="@row.locationId">
+                <td class="locationName"><a href="~/Locations/@row.locationId">@row.locationName</a></td>
+                <td class="mapName"><a href="~/Maps/@row.mapId">@row.mapName</a></td>
+            </tr>
+        }
+    </tbody>
+</table>

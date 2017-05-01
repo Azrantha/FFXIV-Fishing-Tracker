@@ -1,0 +1,66 @@
+﻿@{
+    Layout = "~/_SiteLayout.cshtml";
+    var userName = WebSecurity.CurrentUserName;
+    var db = Database.Open("StarterSite");
+    if (UrlData.Count != 1)
+    {
+        Response.Redirect("~/Default.cshtml");
+    }
+    var locationId = UrlData.ElementAt(0);
+    var userId = -1;
+    var selectFishByLocationQuery = "";
+    if (WebSecurity.IsAuthenticated)
+    {
+        //store the userId to prevent multiple queries being run unnecessarily.
+        userId = db.Query("SELECT userId from UserProfile where Email = '" + userName + "'").ElementAt(0).UserId;
+        selectFishByLocationQuery = "SELECT fish.fishId, fish.fishName, fish.fishLevel, fish.fishDescription, fish.fishPatch, " +
+            "fish.fishEorzeaDBLink, user_fish_junction.caught, location.locationName, location.locationId, map.mapName, map.mapId " +
+            "FROM fish INNER JOIN user_fish_junction ON fish.fishId = user_fish_junction.fishId INNER JOIN location_fish_junction " +
+            "ON fish.fishId = location_fish_junction.fishId INNER JOIN location ON location.locationId = " +
+            "location_fish_junction.locationId INNER JOIN map ON location.mapId = map.mapId " +
+            "WHERE user_fish_junction.userId = " + userId + " AND location.locationId = " + locationId;
+    }
+    else
+    {
+        selectFishByLocationQuery = "SELECT fish.fishId, fish.fishName, fish.fishLevel, fish.fishDescription, fish.fishPatch, " +
+            "fish.fishEorzeaDBLink, CAST(0 as bit), location.locationName, location.locationId, map.mapName, map.mapId " +
+            "FROM fish INNER JOIN user_fish_junction ON fish.fishId = user_fish_junction.fishId INNER JOIN location_fish_junction " +
+            "ON fish.fishId = location_fish_junction.fishId INNER JOIN location ON location.locationId = " +
+            "location_fish_junction.locationId INNER JOIN map ON location.mapId = map.mapId " +
+            "WHERE location.locationId = " + locationId;
+    }
+
+    Console.Write(selectFishByLocationQuery);
+    var dbResults = db.Query(selectFishByLocationQuery);
+    var location = dbResults.ElementAt(0);
+    Page.Title = location.locationName;
+}
+
+@section featured {
+    <section class="featured">
+        <div class="content-wrapper">
+            <div class="title">
+                <h1>@Page.Title.</h1>
+            </div>
+        </div>
+    </section>
+}
+
+<h3>Contains the following locations:</h3>
+<table id="locationTable">
+    <thead>
+        <tr>
+            <th>Locaton</th>
+            <th>Map</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var row in dbResults)
+        {
+            <tr class="locationRow" id="@row.locationId">
+                <td class="locationName"><a href="~/Locations/@row.locationId">@row.locationName</a></td>
+                <td class="mapName"><a href="~/Maps/@row.mapId">@row.mapName</a></td>
+            </tr>
+        }
+    </tbody>
+</table>
