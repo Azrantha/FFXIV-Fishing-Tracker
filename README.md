@@ -1,10 +1,10 @@
-# FFXIV-Fishing-Tracker
+```# FFXIV-Fishing-Tracker
 FFXIV Fishing Tracker ASP.Net project with C# 
 
 Assignment for CI346
 
 FFXIV Fishing Tracker is a website designed to allow people who play fisher in FFXIV to track the progress of which fish they have caught. Features like filtering the list based on the patch the fish was introduced, and whether the user has caught it already, as well as pages to allow viewing the fish by location.
-Combining these will let a user track the remaining fishes they need to cash with an easier interface than the one provided within the game.
+Combining these will let a user track the remaining fishes they need to catch with an easier interface than the one provided within the game.
 
 # Build Instructions
 This project requires msbuild to build and IIS Express to run. 
@@ -12,12 +12,12 @@ Build tested on Windows 10, website tested in Firefox and Opera.
 
 - Clone the project to your computer.
 - Open command-line, and navigate to *Path To Cloned Project*\VisualStudio
-- Type msbuild and press enter. Wait for it to finish.
+- Type msbuild and press enter (You may need to add msbuild to your path for this to work). Wait for it to finish.
 
 # Deploying the Server
 You must build the server locally first!
 
-- Open command-line, navigate to your iisexpress.exe file(typically found in C:\Program Files\IIS Express)
+- Open command-line, navigate to your iisexpress.exe file (typically found in C:\Program Files\IIS Express)
 - Type iisexpress.exe /path:"*\Path To Cloned Project*\VisualStudio\PrecompiledWeb\localhost_64067" /port:5000 *(Or other port if desired)*
 - The server will now continue to run on the specified port until you close the command-line interface, or type Q into the console.
 
