@@ -8,28 +8,30 @@ $(document).ready(function () {
 
     filter();
     hideCaught();
+
+    $("#selectPatch").change(filter); // filter by patch when patch selection box changed
+    $("#hideCaughtToggle").change(hideCaught); //hide all caught fish if this is toggled on, or show them if toggled off and they are not filtered.
+
+    $(".fishRowCaught").change(function () {
+        var choice = $("#hideCaughtToggle").is(":checked");
+        if (choice) {
+            //if the hide taught toggle is currently checked, then this row must not have previously been checked (as it was visible)
+            //therefore, this row should now be marked as both caught and hidden. This is faster than executing the hideCaught function.
+            $(this).parents(".fishRow").addClass("caught").addClass("hidden");
+        } else {
+            //Otherwise, toggle the caught class on the parent.
+            $(this).parents(".fishRow").toggleClass("caught")
+        }
+    });
 });
 
-$("#selectPatch").change(filter); // filter by patch when patch selection box changed
-$("#hideCaughtToggle").change(hideCaught); //hide all caught fish if this is toggled on, or show them if toggled off and they are not filtered.
 
-$(".fishRowCaught").change(function () {
-    var choice = $("#hideCaughtToggle")[0].checked;
-    if (choice) {
-        //if the hide taught toggle is currently checked, then this row must not have previously been checked (as it was visible)
-        //therefore, this row should now be marked as both caught and hidden. This is faster than executing the hideCaught function.
-        $(this).parents(".fishRow").addClass("caught").addClass("hidden");
-    } else {
-        //Otherwise, toggle the caught class on the parent.
-        $(this).parents(".fishRow").toggleClass("caught")
-    }
-});
 
 /*
  * Depending on the choice in the selectPatch drop down, display all fish, or add/remvoe the class Filtered to the hidden fish.
  */
 function filter() {
-    var choice = $("#selectPatch")[0].value;
+    var choice = $("#selectPatch").val();
     var rows = $(".fishRow");
     if (choice == "none") {
         rows.removeClass("filtered");
@@ -49,7 +51,7 @@ function filter() {
  * Depending on whether the hideCaughtToggle is checked, either add or remove the hidden class from caught rows.
  */
 function hideCaught() {
-    var choice = $("#hideCaughtToggle")[0].checked;
+    var choice = $("#hideCaughtToggle").is(":checked");
     var caughtRows = $(".caught")
     if (choice) {
         caughtRows.addClass("hidden");

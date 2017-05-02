@@ -74,7 +74,7 @@
         <tbody>
             @foreach (var row in db.Query(selectFishQuery))
             {
-                <tr @(row.caught ? "class=\"fishRow caught\"" : "class=\"fishRow\"") id="@row.fishId" patch="@row.fishPatch">
+                <tr @(row.caught ? "class=fishRow caught" : "class=fishRow") id="@row.fishId" patch="@row.fishPatch">
                     <td class="fishNameRow"><a href="~/fish/@row.fishId">@row.fishName</a></td>
                     <td class="fishLevelRow">@row.fishLevel</td>
                     <td class="fishDescriptionRow">@row.fishDescription</td>

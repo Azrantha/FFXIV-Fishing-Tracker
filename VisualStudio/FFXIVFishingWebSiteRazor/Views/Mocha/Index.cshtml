@@ -1,0 +1,87 @@
+﻿@{ 
+    Layout = null;
+
+    //Prevent access to test page from any request that isn't fromn the server.
+    if (!HttpContext.Current.Request.IsLocal)
+    {
+        Response.Status = "403 Forbidden";
+        Response.End();
+    }
+}
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width" />
+  <title>Mocha</title>
+  <link rel="stylesheet" href="~/Content/mocha.css" />
+
+  <script src="~/Scripts/specs/bdd/mocha.js"></script>
+  <script src="~/Scripts/specs/bdd/chai.js"></script>
+  <script src="~/Scripts/specs/bdd/sinon.js"></script>
+  <script src="~/Scripts/specs/bdd/fixtures.js"></script>
+  <script src="~/Scripts/specs/bdd/sinon-chai.js"></script>
+  <script>mocha.setup('bdd')</script>
+
+  <script src="~/Scripts/jquery-1.10.2.min.js"></script>
+  <script src="~/Scripts/filtering.js"></script>
+  <!-- include your files here -->
+  <script src="~/Scripts/specs/application/testFiltering.js"></script>
+  <!-- End of your files -->
+</head>
+<body>
+    <div hidden="hidden" id="testTable">
+        <div class="horizontal">
+            <select id="selectPatch">
+                <option value="none">All Fish</option>
+                <option value="2">A Realm Reborn Fish (2.x)</option>
+                <option value="3">Heavensward Fish (3.x)</option>
+            </select>
+            <label id="horizontalToggleLabel"><input type="checkbox" name="hideCaught" id="hideCaughtToggle" value="true" /> Hide caught fish</label>
+        </div>
+        <table id="fishTable">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Level</th>
+                    <th>Description</th>
+                    <th>Patch</th>
+                    <th>Caught</th>
+                    <th>Eorzea DB tooltip</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="fishRow caught" id="1" patch="3.3">
+                    <td class="fishNameRow"><a href="/fish/1">Scaleripper</a></td>
+                    <td class="fishLevelRow">60</td>
+                    <td class="fishDescriptionRow">A king among shadowhiskers, and lord of the waters of the Hundred Throes.</td>
+                    <td class="fishPatchRow">3.3</td>
+                    <td><input class="fishRowCaught" name="1" value="Caught" type="checkbox"><input name="1" value="row" type="hidden"></td>
+                    <td class="fishEorzeaDBLink"><a href="http://eu.finalfantasyxiv.com/lodestone/playguide/db/item/cd9a2a9dd12/" class="eorzeadb_link">tooltip</a></td>
+                </tr>
+                <tr class="fishRow" id="2" patch="3.0">
+                    <td class="fishNameRow"><a href="/fish/2">Whilom catfish</a></td>
+                    <td class="fishLevelRow">52</td>
+                    <td class="fishDescriptionRow">A small, red catfish native to the Whilom River.</td>
+                    <td class="fishPatchRow">3.0</td>
+                    <td><input class="fishRowCaught" name="2" value="Caught" type="checkbox"><input name="2" value="row" type="hidden"></td>
+                    <td class="fishEorzeaDBLink"><a href="http://eu.finalfantasyxiv.com/lodestone/playguide/db/item/210177619aa/" class="eorzeadb_link">tooltip</a></td>
+                </tr>
+                <tr class="fishRow" id="4" patch="2.2">
+                    <td class="fishNameRow"><a href="/fish/4">Silver Sovereign</a></td>
+                    <td class="fishLevelRow">50</td>
+                    <td class="fishDescriptionRow">Known also by the name of tarpon, this rare fish is said to have swum the oceans of Eorzea since the dawn of time. Lord of the waters of Oschon's Torch. </td>
+                    <td class="fishPatchRow">2.2</td>
+                    <td><input class="fishRowCaught" name="3" value="Caught" type="checkbox"><input name="3" value="row" type="hidden"></td>
+                    <td class="fishEorzeaDBLink"><a href="http://eu.finalfantasyxiv.com/lodestone/playguide/db/item/1ac03db6d34/" class="eorzeadb_link">tooltip</a></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+  <div id="mocha"></div>
+  <script>
+    fixtures.path = '~/Scripts/specs/fixtures';
+    mocha.run();
+  </script>
+</body>
+</html>
