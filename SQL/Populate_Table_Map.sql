@@ -1,0 +1,1 @@
+insert into map (mapName) values ('The Dravanian Forelands')

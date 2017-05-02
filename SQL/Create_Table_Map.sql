@@ -1,0 +1,4 @@
+CREATE TABLE map (
+  mapId INT IDENTITY NOT NULL PRIMARY KEY,
+  mapName nvarchar(45) UNIQUE
+)
